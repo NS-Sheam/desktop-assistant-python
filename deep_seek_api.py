@@ -73,11 +73,14 @@ def ask_to_ai(prompt, model="deepseek-r1"):
                         speak(buffer)
                         buffer = ""  # Clear buffer after speaking
                         last_spoken = time.time()
+            else:
+                speak("Is there anything else I can help you with?")
+                return buffer
 
             # Speak remaining text if any
             if buffer:
                 speak(buffer)
-    
+                
     except Exception as e:
         speak(f"An error occurred: {e}")
 
