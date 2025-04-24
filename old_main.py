@@ -1,3 +1,5 @@
+
+
 import speech_recognition as sr
 import pyttsx3
 import datetime
@@ -7,34 +9,24 @@ import wikipedia
 import requests
 import re
 import random
-import subprocess
 from config import weather_api_key, currency_api_key, news_api_key
+
 from deep_seek_api import ask_to_ai
 
-# Initialize text-to-speech engine
-engine = pyttsx3.init()
-rate = engine.getProperty('rate')
-engine.setProperty('rate', rate - 10)
 
-# Allowed shell commands for security
-ALLOWED_COMMANDS = {
-    'list files': 'dir',          # Windows alternative to 'ls'
-    'network info': 'ipconfig',   # Windows alternative to 'ifconfig'
-    'system info': 'systeminfo',  # Windows system info
-    'current directory': 'cd',    # Windows prints current dir
-    'disk space': 'wmic diskdrive get size,freespace,caption',
-    'running processes': 'tasklist',
-    'system uptime': 'net statistics workstation | find "Statistics since"',
-    'current user': 'whoami',
-}
+engine = pyttsx3.init()
+
+
+rate = engine.getProperty('rate')
+
+
+engine.setProperty('rate', rate - 10) 
 
 def speak(text):
-    """Convert text to speech"""
     engine.say(text)
     engine.runAndWait()
 
 def greet_user():
-    """Greet the user based on time of day"""
     hour = datetime.datetime.now().hour
     speak("Hello Avengers!")
     if hour < 12:
@@ -45,8 +37,8 @@ def greet_user():
         speak("Good Evening!")
     speak("I am your assistant. How can I help you today?")
 
+
 def listen_to_user():
-    """Listen to user voice input and convert to text"""
     recognizer = sr.Recognizer()
     with sr.Microphone() as source:
         print("Listening...")
@@ -62,7 +54,6 @@ def listen_to_user():
         return query.lower()
 
 def search_wikipedia(query):
-    """Search Wikipedia for information"""
     speak("Searching Wikipedia...")
     try:
         result = wikipedia.summary(query, sentences=2)
@@ -71,7 +62,6 @@ def search_wikipedia(query):
         return "Sorry, I couldn't find any results on Wikipedia."
 
 def fetch_weather(city):
-    """Fetch weather information for a city"""
     api_key = weather_api_key  
     base_url = "http://api.weatherapi.com/v1/current.json?"  
     complete_url = f"{base_url}key={api_key}&q={city}&aqi=no" 
@@ -81,6 +71,7 @@ def fetch_weather(city):
         data = response.json()
         
         if "error" not in data:
+          
             location = data['location']['name']
             region = data['location']['region']
             country = data['location']['country']
@@ -97,9 +88,10 @@ def fetch_weather(city):
         return "There was a problem fetching the weather."
 
 def calculate_expression(expression):
-    """Calculate mathematical expressions"""
+
     expression = expression.replace("x", "*").replace("times", "*").replace("divided by", "/").replace("plus", "+").replace("minus", "-")
     
+
     if not re.match(r'^[0-9+\-*/.() ]+$', expression):
         return "Sorry, I couldn't compute that. Please check the expression."
 
@@ -109,8 +101,8 @@ def calculate_expression(expression):
     except Exception as e:
         return "Sorry, I couldn't compute that. Please check the expression."
 
+
 def fetch_latest_news():
-    """Fetch latest news headlines"""
     api_key = news_api_key  
     url = f"https://newsapi.org/v2/top-headlines?country=us&apiKey={api_key}"
     
@@ -126,24 +118,24 @@ def fetch_latest_news():
     except Exception as e:
         return "There was an issue fetching the news."
 
+
 def tell_joke():
-    """Tell a random joke"""
     jokes = [
         "Why don't skeletons fight each other? They don't have the guts.",
         "I told my wife she was drawing her eyebrows too high. She looked surprised.",
         "I asked the librarian if the library had any books on suicide. She said they're on the top shelf."
     ]
     return random.choice(jokes)
-
 def convert_currency(amount, from_currency, to_currency):
-    """Convert between currencies"""
     url = f"https://v6.exchangerate-api.com/v6/{currency_api_key}/latest/{from_currency}"
     
     try:
         response = requests.get(url)
         data = response.json()
         
+       
         if data["result"] == "success":
+          
             conversion_rate = data["conversion_rates"].get(to_currency)
             if conversion_rate:
                 converted_amount = round(amount * conversion_rate, 2)
@@ -155,52 +147,14 @@ def convert_currency(amount, from_currency, to_currency):
     except Exception as e:
         return f"There was an issue fetching the currency conversion data: {str(e)}"
 
+
 def set_reminder():
-    """Set a reminder"""
     speak("What would you like to be reminded about?")
     task = listen_to_user()
     if task != "None":
         speak(f"Reminder set for: {task}")
 
-def execute_shell_command(command):
-    """Execute a shell command safely"""
-    try:
-        result = subprocess.run(command, shell=True, check=True,
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                              text=True, timeout=10)
-        if result.stdout:
-            return result.stdout.strip()
-        return "Command executed successfully"
-    except subprocess.TimeoutExpired:
-        return "Command timed out"
-    except subprocess.CalledProcessError as e:
-        return f"Error: {e.stderr.strip()}"
-
-def execute_safe_shell_command(user_request):
-    """Execute only allowed shell commands"""
-    # Find the closest matching allowed command
-    for key, cmd in ALLOWED_COMMANDS.items():
-        if key in user_request.lower():
-            return execute_shell_command(cmd)
-    return "Sorry, that command is not allowed."
-
-def handle_shell_command(query):
-    """Handle shell command requests"""
-    # Check if the query matches any allowed command directly
-    for key, cmd in ALLOWED_COMMANDS.items():
-        if key in query.lower():
-            output = execute_shell_command(cmd)
-            return output
-    
-    # If no direct match, ask for clarification
-    speak("I can help with system commands. What would you like me to do?")
-    user_request = listen_to_user()
-    if user_request != "None":
-        return execute_safe_shell_command(user_request)
-    return "No command specified."
-
 def main():
-    """Main function to run the voice assistant"""
     greet_user()
     while True:
         query = listen_to_user()
@@ -260,6 +214,7 @@ def main():
             speak("Please tell me the amount and the currencies to convert from and to.")
             conversion_info = listen_to_user()
             if conversion_info != "None":
+         
                 match = re.match(r"(\d+) (\w+) to (\w+)", conversion_info)
                 if match:
                     amount, from_currency, to_currency = match.groups()
@@ -269,16 +224,15 @@ def main():
         elif "set reminder" in query:
             set_reminder()
 
-        elif any(cmd in query for cmd in ["run command", "execute", "terminal", "shell"]):
-            output = handle_shell_command(query)
-            speak(output)
-
-        elif "exit" in query or "quit" in query or "goodbye" in query:
+        elif "exit" in query or "quit" in query:
             speak("Goodbye! Have a great day!")
             break
 
         else:
+            # speak("What would you like to ask?")
+            # prompt = listen_to_user()
             prompt = query
+            
             if prompt != "None":
                 speak("Thinking...")
                 response_stream = ask_to_ai(prompt)
@@ -286,11 +240,11 @@ def main():
                 # Speak responses as they arrive
                 full_response = ""
                 for chunk in response_stream:
-                    print(chunk, end="", flush=True)
-                    full_response += chunk
-                    speak(chunk)
+                    print(chunk, end="", flush=True)  # Show response in terminal
+                    full_response += chunk  # Accumulate full response
+                    speak(chunk)  # Speak the chunk in real-time
 
-                print("\n")
+                print("\n")  # Add a new line for better formatting
 
 if __name__ == "__main__":
     main()
