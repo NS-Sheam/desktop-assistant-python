@@ -37,6 +37,7 @@ def greet_user():
         speak("Good Evening!")
     speak("I am your assistant. How can I help you today?")
 
+
 def listen_to_user():
     recognizer = sr.Recognizer()
     with sr.Microphone() as source:
